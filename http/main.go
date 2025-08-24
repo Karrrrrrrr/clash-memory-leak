@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"runtime"
@@ -27,15 +28,18 @@ func main() {
 	var client = &http.Client{
 		Transport: &http.Transport{Proxy: proxy},
 	}
+	//http.ProxyFromEnvironment()
 	for {
 		c++
 		func() {
-			var ctx, _ = context.WithTimeout(context.Background(), time.Second/4)
+			var ctx = context.Background()
+			ctx, _ = context.WithTimeout(ctx, time.Second/10)
 
 			req, err := http.NewRequestWithContext(ctx, "GET", "http://192.168.88.1:8080/v1/health/service/card-service", nil)
 			//req, err := http.NewRequestWithContext(ctx, "GET", "http://192.168.88.1:8080/v1/health/service/card-service", nil)
 
 			_ = err
+			//net.Pipe()
 
 			do, err := client.Do(req)
 			if err != nil {
@@ -43,10 +47,13 @@ func main() {
 				fmt.Println(err)
 			}
 			if err == nil {
+				all, err := io.ReadAll(do.Body)
+				fmt.Println("string(all):", string(all), err)
 				defer do.Body.Close()
 			}
+
 			_ = do
-			time.Sleep(time.Second / 3)
+			//time.Sleep(time.Second / 3)
 		}()
 
 	}
